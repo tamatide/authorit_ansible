@@ -1,0 +1,6 @@
+---
+# file: create_ec2.yml
+
+- hosts: localhost
+  roles:
+    - ec2

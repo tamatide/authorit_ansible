@@ -1,0 +1,70 @@
+---
+#Create ELB and Autoscaling config
+
+  - name: Set up loadbalancer
+    elb_classic_lb:
+      name: 'testlb01'
+      region: "{{ aws_region }}"
+      subnets: "{{ public_subnet_id }}"
+      security_group_ids: "{{ sg_id }}"
+      listeners:
+        - protocol: http
+          load_balancer_port: 80
+          instance_port: 5432
+        - protocol: tcp
+          load_balancer_port: 22
+          instance_port: 22
+      health_check:
+          ping_protocol: http
+          ping_port: 5432
+          ping_path: "/healthcheck"
+          response_timeout: 5
+          interval: 10
+          unhealthy_threshold: 2
+          healthy_threshold: 6
+      state: present
+    tags: autoscaling
+
+  - name: Create autoscale config
+    ec2_lc:
+      name: 'testlc_01'
+      image_id: "{{ ami_image }}"
+      region: "{{ aws_region }}"
+      key_name: cdo-ec2
+      instance_profile_name: docker_logs
+      security_groups: [ "{{ sg_id }}" ]
+      instance_type: t2.nano
+      volumes:
+        - device_name: /dev/sda1
+          volume_type: gp2
+          volume_size: 30
+      state: present
+    tags: autoscaling
+
+  - name: Create autoscale group
+    ec2_asg:
+      name: test_group_01
+      load_balancers: 'testlb01'
+      region: "{{ aws_region }}"
+      launch_config_name: 'testlc_01'
+      health_check_period: 60
+      health_check_type: EC2
+      min_size: 1
+      max_size: 2
+      desired_capacity: 1
+      vpc_zone_identifier: "{{ private_subnet_id }}"
+    tags: autoscaling
+
+  - name: Create scaling policy
+    ec2_scaling_policy:
+      state: present
+      region: "{{ aws_region }}"
+      name: "autoscale_policy"
+      adjustment_type: "ChangeInCapacity"
+      asg_name: "test_group_01"
+      scaling_adjustment: +1
+      min_adjustment_step: 1
+      cooldown: 300
+    tags: autoscaling
+
+  # - name: Create alarm

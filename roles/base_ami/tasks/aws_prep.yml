@@ -1,0 +1,30 @@
+---
+# AWS prep tasks for docker logging
+
+  - name: Create CloudWatch log group
+    cloudwatchlogs_log_group:
+      state: present
+      region: "{{ aws_region }}"
+      retention: 7
+      overwrite: yes
+      log_group_name: docker_logs
+    tags: aws
+
+  - name: Create IAM role for docker_logs
+    iam:
+      region: "{{ aws_region }}"
+      iam_type: role
+      name: docker_logs
+      state: present
+    tags: aws
+
+
+  - name: Create IAM policy for docker_logs
+    iam_policy:
+      region: "{{ aws_region }}"
+      iam_type: role
+      iam_name: docker_logs
+      policy_name: 'DockerLogsPolicy'
+      policy_document: 'roles/base_ami/templates/docker_logs_policy.json'
+      state: present
+    tags: aws

@@ -1,0 +1,114 @@
+---
+# Create new VPC and associated networking parts
+
+  - name: Create test vpc
+    ec2_vpc_net:
+      name: vpc-test-01
+      cidr_block: 172.16.0.0/16
+      region: "{{ aws_region }}"
+    register: create_vpc
+    tags: vpc
+
+  - name: Set vpc id
+    set_fact:
+      vpc_id: "{{ create_vpc.vpc.id }}"
+    tags: vpc
+
+
+  - name: Create public subnet
+    ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ vpc_id }}"
+      cidr: 172.16.0.0/24
+      region: "{{ aws_region }}"
+      resource_tags:
+        Name: Test Public Subnet
+    register: public_subnet
+    tags: vpc
+  
+  - name: Set subnet id
+    set_fact:
+      public_subnet_id: "{{ public_subnet.subnet.id }}"
+    tags: vpc
+
+  - name: Create private subnet
+    ec2_vpc_subnet:
+      state: present
+      vpc_id: "{{ vpc_id }}"
+      cidr: 172.16.1.0/24
+      region: "{{ aws_region }}"
+      resource_tags:
+        Name: Test Private Subnet
+    register: private_subnet
+    tags: vpc
+
+  - name: Set subnet id
+    set_fact:
+      private_subnet_id: "{{ private_subnet.subnet.id }}"
+    tags: vpc
+ 
+  - name: Create internet gateway
+    ec2_vpc_igw:
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      state: present
+    register: igw
+    tags: vpc
+
+  - name: Create nat gateway
+    ec2_vpc_nat_gateway:
+      state: present
+      subnet_id: "{{ public_subnet_id }}"
+      wait: yes
+      region: "{{ aws_region }}"
+    register: nat_gateway
+    tags: vpc
+
+  - name: Set up public route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      subnets: "{{ public_subnet_id }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw.gateway_id }}"
+    register: public_route_table
+    tags: vpc
+
+  - name: Set up private route table
+    ec2_vpc_route_table:
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      subnets: "{{ private_subnet_id }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ nat_gateway.nat_gateway_id }}"
+    register: private_route_table
+    tags: vpc
+  
+  - name: Create test security group
+    ec2_group:
+      name: test_sg_01
+      description: 'Test Security Group'
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      rules:
+        - proto: tcp
+          ports:
+            - 5432
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          ports:
+            - 80
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          ports:
+            - 22
+          cidr_ip: 0.0.0.0/0
+    register: create_sg
+    tags: vpc
+  
+  - name: Set security group id
+    set_fact:
+      sg_id: "{{ create_sg.group_id }}"
+    tags: vpc

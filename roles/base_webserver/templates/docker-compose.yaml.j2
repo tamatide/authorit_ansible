@@ -1,0 +1,36 @@
+version: '2.1'
+
+services:
+    apache_01:
+        image: php:7.3-apache
+        container_name: apache_01
+        hostname: apache_01.testdomain.com
+        volumes:
+            - apache_data:/var/www/html/
+            - apache_config:/etc/apache2/sites-available
+        ports:
+            - 5432:80
+        networks:
+            test_net:
+                ipv4_address: 192.168.0.10
+        restart: always
+        logging:
+            driver: awslogs
+            options:
+                awslogs-region: {{ aws_region }}
+                awslogs-group: docker_logs
+
+networks:
+  test_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config: 
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1
+
+volumes:
+{% for volume in docker.volumes %}
+    {{ volume }}:
+        name: {{ volume }} 
+{% endfor %}

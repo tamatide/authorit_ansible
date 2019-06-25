@@ -1,0 +1,31 @@
+---
+# Base config for AMI CentOS7 instance
+
+  - name: Set selinux to permissive
+    selinux:
+      policy: targeted
+      state: permissive
+    tags: selinux
+
+  - name: Set timezone to NZ
+    timezone:
+      name: Pacific/Auckland
+    tags: ntp
+
+  - name: Copy NTP configuration
+    template: 
+      src: 'ntp.conf.j2'
+      dest: '/etc/ntp.conf'
+      mode: '0600'
+      owner: 'root'
+      group: 'root'
+    tags: ntp
+  
+  - name: Copy SSH configuration
+    template:
+      src: 'opensshd.conf.j2'
+      dest: '/etc/ssh/sshd_config'
+      mode: '0600'
+      owner: 'root'
+      group: 'root'
+    tags: ssh

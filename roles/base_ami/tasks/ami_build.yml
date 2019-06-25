@@ -1,0 +1,47 @@
+---
+# Base build for AMI CentOS7 instance
+
+  - name: Set up the base server
+    ec2:
+      key_name: cdo-ec2
+      instance_type: t2.nano
+      image: ami-b6bb47d4
+      region: "{{ aws_region }}"
+      instance_profile_name: docker_logs
+      wait: yes
+      volumes:
+        - device_name: /dev/sda1
+          volume_type: gp2
+          volume_size: 20 
+          encrypted: true
+      group: default
+    register: ec2
+    tags: ami
+
+  - name: Add new instance ID as variable
+    lineinfile:
+      dest: "./roles/base_webserver/vars/main.yml"
+      regexp: "ami_build_instance_id:" 
+      line: "ami_build_instance_id: '{{ item.id }}'"
+      state: present
+    with_items: "{{ ec2.instances }}"
+    tags: ami
+
+  - name: Add new instance IP to dev host group
+    lineinfile:
+      dest: "./dev-hosts"
+      regexp: "{{ item.id }}"
+      insertafter: "[ami_base_server]" 
+      line: "{{ item.public_ip }}"
+    with_items: "{{ ec2.instances }}"
+    tags: ami
+
+  - name: Wait for the instances to boot by checking the ssh port
+    wait_for:
+        host: "{{item.public_ip}}"
+        port: 22
+        delay: 60
+        timeout: 320
+        state: started
+    with_items: "{{ ec2.instances }}"
+    tags: ami

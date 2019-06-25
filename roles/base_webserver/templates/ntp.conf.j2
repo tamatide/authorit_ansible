@@ -1,0 +1,6 @@
+# This file is controlled by Ansible
+
+{% for ntpserver in ntptimeservers %}
+    server {{ ntpserver }} iburst
+{% endfor %}
+driftfile /var/lib/ntp/ntp.drift

@@ -1,0 +1,5 @@
+---
+# Ansible tasks to create and configure a new VPC and AutoScaling
+
+  - include: vpc_config.yml
+  - include: autoscale_config.yml

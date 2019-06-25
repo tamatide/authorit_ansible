@@ -1,0 +1,6 @@
+---
+# file: build_ami.yml
+
+- hosts: localhost
+  roles:
+    - base_ami

@@ -1,0 +1,4 @@
+# Ignore retry files #
+######################
+
+*.retry

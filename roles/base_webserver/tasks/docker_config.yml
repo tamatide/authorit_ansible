@@ -1,0 +1,81 @@
+---
+# Install and configure docker with apache container
+
+  - name: Add docker packages
+    package: 
+      name: "{{item}}"
+      state: present
+    with_items:
+       - docker
+       - docker-compose
+       - python
+       - python2-pip
+    tags: docker
+
+  - name: Install python packages
+    pip:
+      name: 'docker'
+    tags: docker
+
+  - name: Create data directories
+    file:
+      path: "{{ root_directory }}/{{ item }}"
+      state: directory
+      mode: 0775
+    with_items:
+      - "misc"
+    tags: docker
+
+  - name: Start docker service
+    service:
+      name: docker
+      state: started
+      enabled: yes
+    tags: docker
+
+  - name: Create docker volumes
+    docker_volume:
+      name: "{{ item }}"
+    with_items: "{{ docker.volumes}}"
+    tags: docker
+
+  - name: Symlink directories
+    file:
+      src: "/var/lib/docker/volumes/{{ item }}/_data/"
+      path: "{{ root_directory }}/{{ item }}"
+      state: link
+      mode: 0775
+    with_items: "{{ docker.volumes}}"
+    tags: docker
+
+  - name: Copy site data
+    copy:
+      src: "{{ item }}"
+      dest: "{{ root_directory }}/apache_data"
+      mode: 0644
+      owner: 'root'
+      group: 'root'
+    with_items:
+      - 'files/index.php'
+      - 'files/healthcheck.html'
+      - 'files/.htaccess'
+    tags: docker
+  
+  - name: Copy docker-compose config
+    template:
+      src: docker-compose.yaml.j2
+      dest: "{{ root_directory }}/misc/docker-compose.yaml"
+      mode: 0554
+    tags: docker
+
+  - name: Start containers
+    command: "docker-compose up -d"
+    args:
+      chdir: "{{ root_directory }}/misc/"
+    tags: docker
+
+  - name: Enable rewrite module
+    command: "docker exec -i apache_01 bash -c 'a2enmod rewrite'"
+    tags: docker
+
+  

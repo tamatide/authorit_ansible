@@ -1,0 +1,7 @@
+---
+# Ansible tasks to configure CentOS7 for AMI image
+
+  - include: base_install.yml
+  - include: base_config.yml
+  - include: docker_config.yml
+  - include: create_ami.yml

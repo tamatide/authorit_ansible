@@ -1,0 +1,7 @@
+---
+# file: local.yml
+
+- hosts: ami_base_server
+  roles:
+    - base_webserver
+  become: true

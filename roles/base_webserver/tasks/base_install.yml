@@ -1,0 +1,44 @@
+---
+# Base config for AMI CentOS7 instance
+
+  - name: Check if EPEL repo is already configured
+    stat:
+      path: "{{ epel_repofile_path }}"
+    register: epel_repofile_result
+    tags: epel
+
+  - name: Import EPEL GPG key.
+    rpm_key:
+      key: "{{ epel_repo_gpg_key_url }}"
+      state: present
+    when: epel_repofile_result.stat.exists == false
+    tags: epel
+  
+  - name: Install EPEL if needed
+    yum:
+      name: "{{ epel_repo_url }}"
+      state: present
+    when: epel_repofile_result.stat.exists == false
+    tags: epel
+
+  - name: Run yum update
+    yum:
+      name: '*'
+      state: latest
+    tags: packages
+
+  - name: Add common packages
+    package: name={{item}} state=present
+    with_items:
+       - git
+       - ntp
+       - curl
+       - wget
+       - vim
+    tags: packages
+  
+  - name: Reboot
+    reboot:
+      reboot_timeout: 600
+      post_reboot_delay: 60
+      connect_timeout: 600

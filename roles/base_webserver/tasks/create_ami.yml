@@ -1,0 +1,50 @@
+---
+# Create AMI, terminate build instance and clean up variables
+
+  - name: Create AMI
+    ec2_ami:
+      region: "{{ aws_region }}"
+      instance_id: "{{ ami_build_instance_id }}"
+      wait: yes
+      name: test_ami_01
+    delegate_to: localhost
+    register: create_ami
+    sudo: no 
+    tags: ami
+
+  - name: Add new AMI image ID as variable
+    lineinfile:
+      dest: "./roles/ec2/vars/main.yml"
+      regexp: "ami_image:" 
+      line: "ami_image: '{{ create_ami.image_id }}'"
+      state: present
+    delegate_to: localhost
+    sudo: no 
+    tags: ami
+
+  - name: Terminate build instance
+    ec2:
+      region: "{{ aws_region }}"
+      state: 'absent'
+      instance_ids: "{{ ami_build_instance_id }}"
+    delegate_to: localhost
+    sudo: no
+    tags: ami
+
+  - name: Remove instance ID as variable
+    lineinfile:
+      dest: "./roles/base_webserver/vars/main.yml"
+      regexp: "ami_build_instance_id:" 
+      line: "ami_build_instance_id:"
+    delegate_to: localhost
+    sudo: no
+    tags: ami
+
+  - name: Remove instance IP from dev host group
+    lineinfile:
+      dest: "./dev-hosts"
+      regexp: "{{ ansible_host }}" 
+      state: absent
+    delegate_to: localhost
+    sudo: no
+    tags: ami

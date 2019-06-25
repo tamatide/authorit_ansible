@@ -1,0 +1,5 @@
+---
+# Ansible tasks to create base CentOS7 for AMI
+
+  - include: aws_prep.yml
+  - include: ami_build.yml
