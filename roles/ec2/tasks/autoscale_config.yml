@@ -30,7 +30,7 @@
       name: 'testlc_01'
       image_id: "{{ ami_image }}"
       region: "{{ aws_region }}"
-      key_name: cdo-ec2
+      key_name: "{{ key_pair }}"
       instance_profile_name: docker_logs
       security_groups: [ "{{ sg_id }}" ]
       instance_type: t2.nano

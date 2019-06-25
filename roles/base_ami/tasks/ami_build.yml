@@ -3,7 +3,7 @@
 
   - name: Set up the base server
     ec2:
-      key_name: cdo-ec2
+      key_name: "{{ key_pair }}"
       instance_type: t2.nano
       image: ami-b6bb47d4
       region: "{{ aws_region }}"
