@@ -18,7 +18,6 @@
       state: present
     tags: aws
 
-
   - name: Create IAM policy for docker_logs
     iam_policy:
       region: "{{ aws_region }}"

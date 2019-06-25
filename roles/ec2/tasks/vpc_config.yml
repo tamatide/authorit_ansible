@@ -14,7 +14,6 @@
       vpc_id: "{{ create_vpc.vpc.id }}"
     tags: vpc
 
-
   - name: Create public subnet
     ec2_vpc_subnet:
       state: present

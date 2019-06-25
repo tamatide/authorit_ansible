@@ -1,4 +1,4 @@
 ---
 # Variables for EC2 environment creation
 
-ami_image: 'ami-0debe611a58a29e62'
+ami_image:
