@@ -5,7 +5,7 @@
     ec2:
       key_name: "{{ key_pair }}"
       instance_type: t2.nano
-      image: ami-b6bb47d4
+      image: ami-08bd00d7713a39e7d
       region: "{{ aws_region }}"
       instance_profile_name: docker_logs
       wait: yes

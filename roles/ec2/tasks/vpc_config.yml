@@ -85,10 +85,29 @@
     register: private_route_table
     tags: vpc
   
-  - name: Create test security group
+  - name: Create pubic security group
     ec2_group:
-      name: test_sg_01
-      description: 'Test Security Group'
+      name: pubic_sg_01
+      description: 'Public Security Group'
+      vpc_id: "{{ vpc_id }}"
+      region: "{{ aws_region }}"
+      rules:
+        - proto: tcp
+          ports:
+            - 80
+          cidr_ip: 0.0.0.0/0
+    register: public_sg
+    tags: vpc
+  
+  - name: Set security group id
+    set_fact:
+      public_sg_id: "{{ public_sg.group_id }}"
+    tags: vpc
+
+  - name: Create private security group
+    ec2_group:
+      name: private_sg_01
+      description: 'Private Security Group'
       vpc_id: "{{ vpc_id }}"
       region: "{{ aws_region }}"
       rules:
@@ -96,18 +115,10 @@
           ports:
             - 5432
           cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          ports:
-            - 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          ports:
-            - 22
-          cidr_ip: 0.0.0.0/0
-    register: create_sg
+    register: private_sg
     tags: vpc
   
   - name: Set security group id
     set_fact:
-      sg_id: "{{ create_sg.group_id }}"
+      private_sg_id: "{{ private_sg.group_id }}"
     tags: vpc

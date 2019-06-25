@@ -34,4 +34,4 @@ Complete the following outstanding tasks
 - Finish ReadMe
 - Check all comments and tags
 - Add CPU alarm for AutoScaling
-
+- Move more items to variables where applicable

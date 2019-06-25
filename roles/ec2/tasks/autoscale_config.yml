@@ -6,7 +6,7 @@
       name: 'testlb01'
       region: "{{ aws_region }}"
       subnets: "{{ public_subnet_id }}"
-      security_group_ids: "{{ sg_id }}"
+      security_group_ids: "{{ public_sg_id }}"
       listeners:
         - protocol: http
           load_balancer_port: 80
@@ -32,7 +32,7 @@
       region: "{{ aws_region }}"
       key_name: "{{ key_pair }}"
       instance_profile_name: docker_logs
-      security_groups: [ "{{ sg_id }}" ]
+      security_groups: [ "{{ private_sg_id }}" ]
       instance_type: t2.nano
       volumes:
         - device_name: /dev/sda1
