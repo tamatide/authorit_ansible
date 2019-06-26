@@ -55,16 +55,60 @@
       vpc_zone_identifier: "{{ private_subnet_id }}"
     tags: autoscaling
 
-  - name: Create scaling policy
+  - name: Create scaling up policy
     ec2_scaling_policy:
       state: present
       region: "{{ aws_region }}"
-      name: "autoscale_policy"
+      name: "autoscale_up_policy"
       adjustment_type: "ChangeInCapacity"
       asg_name: "test_group_01"
       scaling_adjustment: +1
       min_adjustment_step: 1
       cooldown: 300
     tags: autoscaling
+    register: scale_up
 
-  # - name: Create alarm
+  - name: Create scaling down policy
+    ec2_scaling_policy:
+      state: present
+      region: "{{ aws_region }}"
+      name: "autoscale_down_policy"
+      adjustment_type: "ChangeInCapacity"
+      asg_name: "test_group_01"
+      scaling_adjustment: -1
+      min_adjustment_step: 1
+      cooldown: 300
+    tags: autoscaling
+    register: scale_down
+
+  - name: Create High CPU alarm
+    ec2_metric_alarm:
+      state: present
+      region: "{{ aws_region }}"
+      name: "CPU_HighUtil"
+      metric: "CPUUtilization"
+      namespace: "AWS/EC2"
+      statistic: Average
+      comparison: ">="
+      threshold: 80
+      period: 300
+      evaluation_periods: 1
+      unit: "Percent"
+      description: "This will alarm when an instance has CPU Utilization over/equal to 80% for 5 minutes"
+      alarm_actions: ['{{ scale_up["arn"] }}']
+
+  - name: Create Low CPU alarm
+    ec2_metric_alarm:
+      state: present
+      region: "{{ aws_region }}"
+      name: "CPU_LowUtil"
+      metric: "CPUUtilization"
+      namespace: "AWS/EC2"
+      statistic: Average
+      comparison: "<="
+      threshold: 10
+      period: 300
+      evaluation_periods: 2
+      unit: "Percent"
+      description: "This will alarm when an instance has CPU Utilization under/equal to 10% for 10 minutes"
+      alarm_actions: ['{{ scale_down["arn"] }}']
