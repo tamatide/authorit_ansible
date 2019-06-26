@@ -40,10 +40,15 @@
     sudo: no
     tags: ami
 
+  - name: Set instance_ip fact
+    set_fact:
+      instance_ip: "{{ ansible_host }}"
+    tags: ami
+
   - name: Remove instance IP from dev host group
     lineinfile:
       dest: "./dev-hosts"
-      regexp: "{{ ansible_host }}" 
+      regexp: "{{ instance_ip }}"
       state: absent
     delegate_to: localhost
     sudo: no
