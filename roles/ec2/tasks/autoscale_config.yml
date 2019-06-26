@@ -54,6 +54,7 @@
       desired_capacity: 1
       vpc_zone_identifier: "{{ private_subnet_id }}"
     tags: autoscaling
+    register: asg
 
   - name: Create scaling up policy
     ec2_scaling_policy:
@@ -96,6 +97,7 @@
       unit: "Percent"
       description: "This will alarm when an instance has CPU Utilization over/equal to 80% for 5 minutes"
       alarm_actions: ['{{ scale_up["arn"] }}']
+      dimensions: "{'AutoScalingGroupName':'test_group_01'}"
 
   - name: Create Low CPU alarm
     ec2_metric_alarm:
@@ -112,3 +114,4 @@
       unit: "Percent"
       description: "This will alarm when an instance has CPU Utilization under/equal to 10% for 10 minutes"
       alarm_actions: ['{{ scale_down["arn"] }}']
+      dimensions: "{'AutoScalingGroupName':'test_group_01'}"
