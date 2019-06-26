@@ -27,6 +27,8 @@ Setup steps to execute before starting with the playbooks
 1. Set up a keypair, add it to your keyring and adjust the variable in ./group_vars/all.yml
 
 2. Adjust the default security group to allow SSH from your IP
+
+3. Export your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY as environment variables
 ```
 
 ### Run
@@ -41,5 +43,4 @@ Finally we run `create_ec2.yml`, this will setup a new VPC and its related netwo
 
 Complete the following outstanding tasks
 
-- Finish ReadMe
 - Move more items to variables where applicable
